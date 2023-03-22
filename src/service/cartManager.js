@@ -40,22 +40,24 @@ export default class cartManager {
     }
 
     addProductToCart = async (cid,pid) =>{
-       
+        let carts = await this.readCarts()
         let cartById = await this.exist(cid)
         if (!cartById) return "Cart doesn't found"
         let productById = await productList.exist(pid)
         if (!productById) return "product doesn't found"
 
+        let cartFilter = carts.filter(cart => cart.id != cid) 
+
         if (cartById.products.some(prod => prod.id === pid)){
         let productInCart = cartById.products.find(product => product.id === pid)
-            productInCart.quantity++
-            let addProductRepeated = [productInCart, ...cartFilter]
-            await fs.promises.writeFile(this.path, JSON.stringify(addProductRepeated))
-            return "the product was added to the quantity"
-        }
+        productInCart.quantity++
+        let addProductRepeated = [cartById, ...cartFilter]
+        await fs.promises.writeFile(this.path, JSON.stringify(addProductRepeated))
+        return "the product was added to the quantity"}
 
-        let cartFilter = carts.filter(cart => cart.id != pid)
-        let cartsConcat = [{id:cid, products : {id: productById.id, quantity : 1 } }, ...cartFilter]
+        cartById.products.push({id: productById.id, quantity : 1 })
+       
+        let cartsConcat = [cartById, ...cartFilter]
         await fs.promises.writeFile(this.path, JSON.stringify(cartsConcat))
         return "the product added to the cart" 
 
